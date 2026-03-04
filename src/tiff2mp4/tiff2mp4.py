@@ -30,26 +30,26 @@ def _parse_args():
         "--channel",
         type=int,
         default=0,
-        help="Channel to export as movie",
+        help="Channel to export as movie (default 0)",
     )
     parser.add_argument(
         "--fps",
         type=int,
         default=60,
-        help="Frames per second",
+        help="Frames per second (default 60)",
     )
     parser.add_argument(
         "--upsample",
         type=int,
         default=None,
-        help="Size to upsample",
+        help="Size to upsample (default None)",
     )
     parser.add_argument(
         "-t",
         "--timestamp",
         type=float,
         default=None,
-        help="Add timestamp to each frame",
+        help="Add timestamp to each frame (default None)",
     )
     return parser.parse_args()
 
