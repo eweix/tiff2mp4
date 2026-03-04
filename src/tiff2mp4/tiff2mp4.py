@@ -23,7 +23,6 @@ def _parse_args():
     parser.add_argument(
         "-o",
         "--output",
-        default=None,
         help="Output directory",
     )
     parser.add_argument(
@@ -102,10 +101,15 @@ def main() -> None:
     args = _parse_args()
     u = args.upsample
 
-    if type(args.input) is not list and os.path.isdir(args.input):
-        args.input = glob("*.tif", root_dir=args.input, recursive=True)
+    if os.path.isdir(args.input[0]):
+        input_files = [
+            os.path.join(args.input[0], f)
+            for f in glob("*.tif", root_dir=args.input[0], recursive=True)
+        ]
+    else:
+        input_files = args.input
 
-    for f in track(args.input):
+    for f in track(input_files):
         arr = tifffile.imread(f)
         assert len(arr.shape) == 4, "array must have dimensions TCXY"
         t, c, y, x = arr.shape
