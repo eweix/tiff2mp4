@@ -51,17 +51,37 @@ def _parse_args():
         default=None,
         help="Add timestamp to each frame (default None)",
     )
+    parser.add_argument(
+        "--contrast",
+        type=float,
+        default=1.0,
+        help="Contrast scaling factor (default 1.0)",
+    )
+    parser.add_argument(
+        "--brightness",
+        type=int,
+        default=0,
+        help="Brightness offset (default 0)",
+    )
+
     return parser.parse_args()
 
 
 # Normalize array to 0-255 uint8
-def _normalize(frame: np.ndarray) -> np.ndarray:
-    min_val = frame.min()
-    max_val = frame.max()
+def _normalize(arr: np.ndarray) -> np.ndarray:
+    min_val = arr.min()
+    max_val = arr.max()
     if max_val - min_val == 0:
-        return np.zeros_like(frame, dtype=np.uint8)
-    norm = (frame - min_val) / (max_val - min_val)
+        return np.zeros_like(arr, dtype=np.uint8)
+    norm = (arr - min_val) / (max_val - min_val)
     return (norm * 255).astype(np.uint8)
+
+
+def _adjust_contrast_brightness(
+    arr: np.ndarray, contrast: float = 1.0, brightness: int = 0
+) -> np.ndarray:
+    adjusted = arr.astype(np.float32) * contrast + brightness
+    return np.clip(adjusted, 0, 255).astype(np.uint8)
 
 
 def _shorten(filepath: str) -> str:
@@ -83,9 +103,7 @@ def write_mp4(
     font = cv2.FONT_HERSHEY_DUPLEX
 
     for i in range(t):
-        frame = _normalize(arr[i])
-
-        # Add timestamp if requested
+        frame = arr[i]
         if timestamp is not None:
             time_sec = i * timestamp
             text = f"{time_sec:.1f} sec"
@@ -117,6 +135,10 @@ def main() -> None:
         # Upsample
         if u is not None:
             arr = resize(arr, (t, y * u, x * u), anti_aliasing=None)
+
+        # Apply contrast and brightness adjustments
+        arr = _normalize(arr)
+        arr = _adjust_contrast_brightness(arr, args.contrast, args.brightness)
 
         # Ensure output directory exists
         output_path = os.path.join(args.output, f"{_shorten(f)}.mp4")
