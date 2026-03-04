@@ -33,6 +33,18 @@ def _parse_args():
         help="Channel to export as movie (default 0)",
     )
     parser.add_argument(
+        "--bar",
+        type=float,
+        default=None,
+        help="Scale bar length in micrometers per pixel (e.g., 0.5 for 0.5 µm/pixel)",
+    )
+    parser.add_argument(
+        "--bar-length",
+        type=float,
+        default=None,
+        help="Desired length of the scale bar in micrometers (e.g., 10 for a 10 µm bar)",
+    )
+    parser.add_argument(
         "--fps",
         type=int,
         default=60,
@@ -95,7 +107,9 @@ def write_mp4(
     output_path: str,
     arr: np.ndarray,
     fps: int,
-    timestamp: float | int | None = None,
+    timestamp: float | None = None,
+    bar_factor: float | None = None,
+    bar_length_microns: float | None = None,
 ) -> None:
     t, y, x = arr.shape
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
@@ -107,6 +121,14 @@ def write_mp4(
             time_sec = i * timestamp
             text = f"{time_sec:.1f} sec"
             cv2.putText(frame, text, (30, 60), font, 0.8, 255, 2)
+        if bar_factor is not None and bar_length_microns is not None:
+            y, x = frame.shape
+            length_px = int(bar_factor * bar_length_microns)
+            end_pt = (x - 20, y - 20)
+            start_pt = (end_pt[0] - length_px, end_pt[1])
+            cv2.line(frame, start_pt, end_pt, 255, 3)
+            label = f"{bar_length_microns:.1f} µm"
+            cv2.putText(frame, label, (start_pt[0], start_pt[1] - 5), font, 0.6, 255, 1)
         writer.write(frame)
     writer.release()
 
@@ -142,7 +164,14 @@ def main() -> None:
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
         # Video writer
-        write_mp4(output_path, arr, args.fps, timestamp=args.timestamp)
+        write_mp4(
+            output_path,
+            arr,
+            args.fps,
+            timestamp=args.timestamp,
+            bar_factor=args.bar,
+            bar_length_microns=args.bar_length,
+        )
 
 
 if __name__ == "__main__":
