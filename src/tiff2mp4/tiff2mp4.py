@@ -101,14 +101,11 @@ def write_mp4(
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     writer = cv2.VideoWriter(output_path, fourcc, fps, (x, y), isColor=False)
     font = cv2.FONT_HERSHEY_DUPLEX
-
     for i in range(t):
         frame = arr[i]
         if timestamp is not None:
             time_sec = i * timestamp
             text = f"{time_sec:.1f} sec"
-
-            # Add text to frame
             cv2.putText(frame, text, (30, 60), font, 0.8, 255, 2)
         writer.write(frame)
     writer.release()
