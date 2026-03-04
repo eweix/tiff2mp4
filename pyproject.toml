@@ -1,0 +1,23 @@
+[project]
+name = "tiff2mp4"
+version = "0.1.0"
+description = "Convert tiff files into mp4s, with optional formatting."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.4.2",
+    "opencv-python>=4.13.0.92",
+    "rich>=14.3.3",
+    "scikit-image>=0.26.0",
+    "tifffile>=2026.2.24",
+]
+
+[tool.uv.sources]
+tiff2mp4 = { path = "src" }
+
+[build-system]
+requires = ["uv_build>=0.9.8,<0.10.0"]
+build-backend = "uv_build"
+
+[project.scripts]
+tiff2mp4 = 'tiff2mp4.tiff2mp4:main'
