@@ -78,9 +78,8 @@ def write_mp4(
     timestamp: float | int | None = None,
 ) -> None:
     t, y, x = arr.shape
-
-    fourcc = cv2.VideoWriter_fourcc(*"fmp4")
-    writer = cv2.VideoWriter(output_path, fourcc, fps, (y, x), isColor=False)
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    writer = cv2.VideoWriter(output_path, fourcc, fps, (x, y), isColor=False)
     font = cv2.FONT_HERSHEY_DUPLEX
 
     for i in range(t):
