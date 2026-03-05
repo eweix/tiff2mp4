@@ -33,12 +33,14 @@ def _parse_args():
         help="Channel to export as movie (default 0)",
     )
     parser.add_argument(
-        "--bar",
+        "-bf",
+        "--bar-factor",
         type=float,
         default=None,
-        help="Scale bar length in micrometers per pixel (e.g., 0.5 for 0.5 µm/pixel)",
+        help="Scale bar length in micrometers per pixel in original image (e.g., 0.5 for 0.5 µm/pixel). Will be converted by the script if upsampled",
     )
     parser.add_argument(
+        "-bl",
         "--bar-length",
         type=int,
         default=None,
@@ -119,19 +121,19 @@ def _shorten(filepath: str) -> str:
 
 def _place_scalebar(
     frame_shape: tuple[int, int],
-    bar_factor: float,
+    bar_factor: float,  # microns per pixel
     bar_length_microns: float,
 ) -> dict:
     y, x = frame_shape
     margin = 20
     max_length_px = x - 2 * margin
-    length_px = int(bar_factor * bar_length_microns)
+    length_px = int(bar_length_microns / bar_factor)
     if length_px > max_length_px:
         length_px = max_length_px
     end_pt = (x - margin, y - margin)
     start_pt = (end_pt[0] - length_px, end_pt[1])
     label = f"{bar_length_microns:.0f} um"
-    (text_w, text_h), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_DUPLEX, 0.6, 1)
+    (text_w, text_h), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_DUPLEX, 0.8, 2)
     text_x = start_pt[0]
     if text_x + text_w + margin > x:
         text_x = end_pt[0] - text_w - margin
@@ -151,7 +153,7 @@ def _make_scalebar(
         cv2.FONT_HERSHEY_DUPLEX,
         0.8,
         255,
-        1,
+        2,
     )
 
 
@@ -200,6 +202,11 @@ def main() -> None:
     else:
         input_files = args.input
 
+    if u is not None:
+        print("Scale prior to resizing", args.bar_factor)
+        args.bar_factor = args.bar_factor / u  # adjust scale factor
+        print("Scale after resizing", args.bar_factor)
+
     for f in track(input_files):
         arr = tifffile.imread(f)
         assert len(arr.shape) == 4, "array must have dimensions TCXY"
@@ -229,7 +236,7 @@ def main() -> None:
             arr,
             args.fps,
             timestamp=args.timestamp,
-            bar_factor=args.bar,
+            bar_factor=args.bar_factor,
             bar_length_microns=args.bar_length,
         )
 
