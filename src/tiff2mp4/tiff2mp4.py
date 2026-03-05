@@ -187,7 +187,10 @@ def main() -> None:
     u = args.upsample
 
     if args.input is None:
-        exit()
+        exit("No input files given. Please specify input files with -i")
+
+    if args.output is None:
+        exit("No output directory given. Please specify one with -o")
 
     if os.path.isdir(args.input[0]):
         input_files = [
