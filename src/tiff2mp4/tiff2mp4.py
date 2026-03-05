@@ -65,15 +65,15 @@ def _parse_args():
     )
     parser.add_argument(
         "--contrast",
-        type=float,
-        default=1.0,
-        help="Contrast scaling factor (default 1.0)",
+        type=str,
+        default="1.0",
+        help="Contrast scaling factor (default 1.0, or 'auto' to auto-adjust)",
     )
     parser.add_argument(
         "--brightness",
-        type=int,
-        default=0,
-        help="Brightness offset (default 0)",
+        type=str,
+        default="0",
+        help="Brightness offset (default 0, or 'auto' to auto-adjust)",
     )
 
     return parser.parse_args()
@@ -90,10 +90,25 @@ def _normalize(arr: np.ndarray) -> np.ndarray:
 
 
 def _adjust_contrast_brightness(
-    arr: np.ndarray, contrast: float = 1.0, brightness: int = 0
+    arr: np.ndarray,
+    contrast: float = 1.0,
+    brightness: int = 0,
 ) -> np.ndarray:
-    adjusted = arr.astype(np.float32) * contrast + brightness
-    return np.clip(adjusted, 0, 255).astype(np.uint8)
+    return np.clip(arr.astype(np.float32) * contrast + brightness, 0, 255).astype(
+        np.uint8
+    )
+
+
+def _auto_brightness_contrast(arr: np.ndarray) -> tuple[int, float]:
+    low = np.percentile(arr, 2)
+    high = np.percentile(arr, 98)
+    if high - low == 0:
+        opt_contrast = 1.0
+        opt_brightness = 0
+    else:
+        opt_contrast = 255.0 / (high - low)
+        opt_brightness = int(-low * opt_contrast)
+    return opt_brightness, opt_contrast
 
 
 def _shorten(filepath: str) -> str:
@@ -160,7 +175,12 @@ def main() -> None:
 
         # Apply contrast and brightness adjustments
         arr = _normalize(arr)
-        arr = _adjust_contrast_brightness(arr, args.contrast, args.brightness)
+        if args.contrast == "auto" or args.brightness == "auto":
+            brightness_value, contrast_value = _auto_brightness_contrast(arr)
+        else:
+            contrast_value = float(args.contrast)
+            brightness_value = int(args.brightness)
+        arr = _adjust_contrast_brightness(arr, contrast_value, brightness_value)
 
         # Ensure output directory exists
         output_path = os.path.join(args.output, f"{_shorten(f)}.mp4")
