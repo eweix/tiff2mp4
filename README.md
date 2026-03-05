@@ -71,16 +71,17 @@ uvx tiff2mp4 -i /path/to/input/files -o /path/to/output/directory \
 
 ### Optional arguments
 
-| Flag                  | Description                                                        |
-| --------------------- | ------------------------------------------------------------------ |
-| `-c, --channel`       | Channel index to export (default 0).                               |
-| `-bf`, `--bar-factor` | Scale bar length in µm per pixel.                                  |
-| `-bl`, `--bar-length` | Desired physical length of the scale bar in µm.                    |
-| `--fps`               | Frames per second for the output video (default 60).               |
-| `--upsample`          | Upsample factor applied to each frame.                             |
-| `-t, --timestamp`     | Time interval between frames in seconds; adds a timestamp overlay. |
-| `--contrast`          | Contrast factor (float) or `"auto"` to auto‑adjust.                |
-| `--brightness`        | Brightness offset (int) or `"auto"` to auto‑adjust.                |
+| Flag                  | Description                                                                                              |
+| --------------------- | -------------------------------------------------------------------------------------------------------- |
+| `-c, --channel`       | Channel index to export (default 0).                                                                     |
+| `-bf`, `--bar-factor` | Scale bar length in µm per pixel.                                                                        |
+| `-bl`, `--bar-length` | Desired physical length of the scale bar in µm.                                                          |
+| `--fps`               | Frames per second for the output video (default 60).                                                     |
+| `--upsample`          | Upsample factor applied to each frame.                                                                   |
+| `-t, --timestamp`     | Time interval between frames in seconds; adds a timestamp overlay.                                       |
+| `--contrast`          | Contrast factor (float) or `"auto"` to auto‑adjust.                                                      |
+| `--brightness`        | Brightness offset (int) or `"auto"` to auto‑adjust.                                                      |
+| `--loop`              | Number of times to loop the file when writing to video. Useful for creating looping uploads for youtube. |
 
 ## Features
 
