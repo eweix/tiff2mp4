@@ -137,6 +137,9 @@ def main() -> None:
     args = _parse_args()
     u = args.upsample
 
+    if args.input is None:
+        exit()
+
     if os.path.isdir(args.input[0]):
         input_files = [
             os.path.join(args.input[0], f)
