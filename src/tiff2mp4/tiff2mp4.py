@@ -217,9 +217,11 @@ def main() -> None:
 
     for f in track(input_files):
         arr = tifffile.imread(f)
-        assert len(arr.shape) == 4, "array must have dimensions TCXY"
-        t, c, y, x = arr.shape
-        arr = arr[:, args.channel, :, :]  # dimensions (T, Y, X)
+        try:
+            t, c, y, x = arr.shape
+            arr = arr[:, args.channel, :, :]  # dimensions (T, Y, X)
+        except ValueError:
+            t, y, x = arr.shape
 
         # Upsample
         if u is not None:
