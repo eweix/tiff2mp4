@@ -40,7 +40,7 @@ def _parse_args():
     )
     parser.add_argument(
         "--bar-length",
-        type=float,
+        type=int,
         default=None,
         help="Desired length of the scale bar in micrometers (e.g., 10 for a 10 µm bar)",
     )
@@ -117,6 +117,44 @@ def _shorten(filepath: str) -> str:
     return short_name
 
 
+def _place_scalebar(
+    frame_shape: tuple[int, int],
+    bar_factor: float,
+    bar_length_microns: float,
+) -> dict:
+    y, x = frame_shape
+    margin = 20
+    max_length_px = x - 2 * margin
+    length_px = int(bar_factor * bar_length_microns)
+    if length_px > max_length_px:
+        length_px = max_length_px
+    end_pt = (x - margin, y - margin)
+    start_pt = (end_pt[0] - length_px, end_pt[1])
+    label = f"{bar_length_microns:.0f} um"
+    (text_w, text_h), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_DUPLEX, 0.6, 1)
+    text_x = start_pt[0]
+    if text_x + text_w + margin > x:
+        text_x = end_pt[0] - text_w - margin
+    text_pos = (text_x, start_pt[1] - 5)
+    return {"start": start_pt, "end": end_pt, "text_pos": text_pos, "label": label}
+
+
+def _make_scalebar(
+    frame: np.ndarray,
+    coords: dict,
+) -> None:
+    cv2.line(frame, coords["start"], coords["end"], 255, 3)
+    cv2.putText(
+        frame,
+        coords["label"],
+        coords["text_pos"],
+        cv2.FONT_HERSHEY_DUPLEX,
+        0.8,
+        255,
+        1,
+    )
+
+
 # generate video writer and save to mp4
 def write_mp4(
     output_path: str,
@@ -124,12 +162,14 @@ def write_mp4(
     fps: int,
     timestamp: float | None = None,
     bar_factor: float | None = None,
-    bar_length_microns: float | None = None,
+    bar_length_microns: int | None = None,
 ) -> None:
     t, y, x = arr.shape
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     writer = cv2.VideoWriter(output_path, fourcc, fps, (x, y), isColor=False)
     font = cv2.FONT_HERSHEY_DUPLEX
+    if bar_factor is not None and bar_length_microns is not None:
+        scalebar_coords = _place_scalebar((y, x), bar_factor, bar_length_microns)
     for i in range(t):
         frame = arr[i]
         if timestamp is not None:
@@ -137,13 +177,7 @@ def write_mp4(
             text = f"{time_sec:.1f} sec"
             cv2.putText(frame, text, (30, 60), font, 0.8, 255, 2)
         if bar_factor is not None and bar_length_microns is not None:
-            y, x = frame.shape
-            length_px = int(bar_factor * bar_length_microns)
-            end_pt = (x - 20, y - 20)
-            start_pt = (end_pt[0] - length_px, end_pt[1])
-            cv2.line(frame, start_pt, end_pt, 255, 3)
-            label = f"{bar_length_microns:.1f} µm"
-            cv2.putText(frame, label, (start_pt[0], start_pt[1] - 5), font, 0.6, 255, 1)
+            _make_scalebar(frame, scalebar_coords)
         writer.write(frame)
     writer.release()
 
