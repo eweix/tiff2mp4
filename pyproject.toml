@@ -1,6 +1,6 @@
 [project]
 name = "tiff2mp4"
-version = "0.1.0"
+version = "0.2.0"
 description = "Convert tiff files into mp4s, with optional formatting."
 readme = "README.md"
 requires-python = ">=3.12"
